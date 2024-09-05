@@ -2,6 +2,8 @@ package com.sonnet.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sonnet.common.BaseResponse;
 import com.sonnet.common.ErrorCode;
 import com.sonnet.common.ResultUtils;
@@ -207,6 +209,23 @@ public class UserController {
         }else {
             return ResultUtils.error(ErrorCode.OPERATION_ERROR);
         }
+    }
+
+    /**
+     * 根据用户信息，推荐与用户相似的数据
+     * @param pageSize
+     * @param current
+     * @param request
+     * @return
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageSize,long current,HttpServletRequest request){
+        // 1. 校验用户参数
+        // 2. 检验用户权限
+        // 3. 执行查询操作
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> page = userService.page(new Page<>(current, pageSize), queryWrapper);
+        return ResultUtils.success(page);
     }
 
 

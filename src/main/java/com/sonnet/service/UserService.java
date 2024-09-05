@@ -1,11 +1,9 @@
 package com.sonnet.service;
 
-import com.sonnet.model.domain.RegisterResult;
-import com.sonnet.model.domain.User;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import jakarta.annotation.Resource;
+import com.sonnet.model.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -27,4 +25,5 @@ public interface UserService extends IService<User> {
     void userLogout(HttpServletRequest request);
 
     List<User> searchUsersByTags(List<String> tags);
+
 }

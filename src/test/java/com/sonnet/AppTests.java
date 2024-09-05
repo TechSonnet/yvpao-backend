@@ -1,8 +1,15 @@
 package com.sonnet;
+import java.util.ArrayList;
+import java.util.Date;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sonnet.mapper.UserMapper;
+import com.sonnet.model.domain.User;
+import com.sonnet.service.UserService;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,6 +20,11 @@ class AppTests {
 
     @Resource
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Resource
+    private UserService userService;
+    @Autowired
+    private UserMapper userMapper;
 
     @Test
     void contextLoads() {
@@ -43,13 +55,34 @@ class AppTests {
     }
 
     @Test
-    void testHelloWord(){
-        System.out.println("hello word");
-        System.out.println("hello word");
-        System.out.println("hello word");
-        System.out.println("hello word");
-        System.out.println("hello word");
-        System.out.println("hello word");
+    void saveUserTest(){
+        int count = 1000;
+        int temp = 0;
+        ArrayList<User> userList = new ArrayList<>();
+        for (int i = 50; i < 701; i++) {
+            temp++;
+            User user = new User();
+            user.setId((long)i);
+            user.setUsername("");
+            user.setUserAccount("");
+            user.setAvatarUrl("");
+            user.setGender(0);
+            user.setUserPassword("");
+            user.setPhone("");
+            user.setEmail("");
+            user.setUserStatus(0);
+            user.setCreateTime(new Date());
+            user.setUpdateTime(new Date());
+            user.setIsDelete(0);
+            user.setUserRole(0);
+            user.setTags("");
+            userList.add(user);
+            if (temp == 10){
+                temp = 0;
+                boolean b = userService.removeBatchByIds(userList);
+                userList.clear();
+            }
+        }
     }
 
 }
