@@ -183,5 +183,31 @@ public class UserController {
         return ResultUtils.success(userService.searchUsersByTags(tags));
     }
 
+    /**
+     * 更新用户信息
+     * @param user
+     * @return
+     */
+    @PostMapping("/updateUser")
+    public BaseResponse updateUser(@RequestBody User user, HttpServletRequest request){
+        // 1. 校验用户参数
+        if(user == null || user.getId() == null || user.getId() <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户参数为空或不合法");
+        }
+
+        // 2. 校验用户权限
+        // 3. 执行更新操作,管理员可以更新所有用户，否则只能更新自己的信息
+        User userInfo = (User)request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(!isAdmin(request) || !userInfo.getId().equals(user.getId())){
+            throw new BusinessException(ErrorCode.NO_AUTH,"无修改权限");
+        }
+
+        if (userService.updateById(user)) {
+            return ResultUtils.success("1");
+        }else {
+            return ResultUtils.error(ErrorCode.OPERATION_ERROR);
+        }
+    }
+
 
 }
