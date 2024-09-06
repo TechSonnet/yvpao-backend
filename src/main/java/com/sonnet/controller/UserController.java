@@ -223,8 +223,7 @@ public class UserController {
         // 1. 校验用户参数
         // 2. 检验用户权限
         // 3. 执行查询操作
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> page = userService.page(new Page<>(current, pageSize), queryWrapper);
+        Page<User> page = userService.recommendUsers(pageSize,current,request);
         return ResultUtils.success(page);
     }
 

@@ -26,4 +26,5 @@ public interface UserService extends IService<User> {
 
     List<User> searchUsersByTags(List<String> tags);
 
+    Page<User> recommendUsers(long pageSize, long current, HttpServletRequest request);
 }

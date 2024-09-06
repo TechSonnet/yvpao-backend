@@ -3,6 +3,7 @@ package com.sonnet.service.impl;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sonnet.common.ErrorCode;
 import com.sonnet.exception.BusinessException;
@@ -13,6 +14,8 @@ import com.sonnet.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -20,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.sonnet.constant.UserConstant.USER_LOGIN_STATE;
@@ -36,8 +40,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private UserMapper userMapper;
+
     @Resource
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Resource
+    private RedisTemplate redisTemplate;
 
     /**
      * 处理用户注册
@@ -237,11 +245,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 3. 查询
         List<User> userList = Optional.ofNullable(userMapper.selectList(queryWrapper)).orElse(new ArrayList<>());
 
-//        if (CollectionUtils.isEmpty(userList)) {
-//            return new ArrayList<>();
-//        }
-
         return userList.stream().map(user -> this.hindUserInfo(user)).collect(Collectors.toList());
+    }
+
+    /**
+     * 推荐相似用户
+     *
+     * @param pageSize
+     * @param current
+     * @param request
+     * @return
+     */
+    @Override
+    public Page<User> recommendUsers(long pageSize, long current, HttpServletRequest request) {
+        // 1. 检验参数和权限
+        if(pageSize <= 0 || current <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 2. 有缓存从缓存加载
+        Object userObject = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User userInfo = (User) userObject;
+        String redisKey = String.format("yvpao:recommendUsers:%s",userInfo.getId());
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        if (userPage != null) {
+            return userPage;
+        }
+
+        // 3. 无缓存从数据库查询,并写入缓存
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        Page<User> page = this.page(new Page<>(current, pageSize), userQueryWrapper);
+        try {
+            valueOperations.set(redisKey, page, 1000*60*60, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("redis set key error", e);
+        }
+        return page;
     }
 
     /**
