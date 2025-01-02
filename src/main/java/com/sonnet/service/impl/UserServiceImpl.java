@@ -278,6 +278,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 这个分页查询，是怎么查的
         Page<User> page = this.page(new Page<>(current, pageSize), userQueryWrapper);
         try {
+            // 设置过期时间，很重要
             valueOperations.set(redisKey, page, 1000*60*60, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.error("redis set key error", e);
