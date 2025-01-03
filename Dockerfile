@@ -13,6 +13,6 @@ COPY src ./src
 COPY target ./target
 
 # Run the web service on container startup. 此命令在启动 docker 容器的时候可以覆盖掉
-CMD ["java","-jar","/app/target/user-center-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+CMD ["java","-jar","/app/target/yvpao-backend-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
 
 
